@@ -28,7 +28,11 @@ KDE Plasma'da pencere otomatik olarak her zaman üstte tutulur; ek bir kurulum g
 - Chromium / Chrome: `chrome://extensions` → Geliştirici modu → **Paketlenmemiş öğe yükle** → `/usr/share/floatingmedia/browser-extension`
 - Firefox: `about:debugging#/runtime/this-firefox` → **Geçici eklenti yükle** → `/usr/share/floatingmedia/browser-extension/manifest.json` (Firefox yeniden başlayınca kaldırılır)
 
-Sonra bir videoya / görsele / bağlantıya sağ tıklayıp **FloatingMedia'da aç** deyin.
+Kullanım:
+
+- Eklenti simgesine tıklayın: açık sayfadaki **videolar ve fotoğraflar** küçük resimleriyle listelenir; birine tıklayınca FloatingMedia'da açılır.
+- Video / görsel / bağlantıya sağ tıklayıp **FloatingMedia'da aç** deyin.
+- YouTube gibi sayfalardaki videolar (`blob:` akışları) **yt-dlp** ile çözülür (Arch paketi bağımlılık olarak kurar; diğer sistemlerde `yt-dlp` kurun). Qt tek akış oynatabildiği için bazı sitelerde en yüksek kalite yerine ses+görüntü içeren en iyi tek akış seçilir.
 
 ## Yeni sürüm yayınlama (geliştirici)
 

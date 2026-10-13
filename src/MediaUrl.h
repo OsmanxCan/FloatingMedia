@@ -19,34 +19,40 @@ inline bool isAllowedScheme(const QUrl &url)
         || s == QStringLiteral("https");
 }
 
-inline Kind classify(const QUrl &url)
+// Yalnızca dosya uzantısına bakar; uzantı tanınmıyorsa Unknown döner.
+inline Kind classifyByExtension(const QUrl &url)
 {
     if (!url.isValid() || url.isEmpty() || !isAllowedScheme(url))
         return Kind::Unknown;
 
     const QString path = url.path().toLower();
-    if (path.endsWith(QLatin1String(".png"))
-        || path.endsWith(QLatin1String(".jpg"))
-        || path.endsWith(QLatin1String(".jpeg"))
-        || path.endsWith(QLatin1String(".webp"))
-        || path.endsWith(QLatin1String(".bmp"))
-        || path.endsWith(QLatin1String(".gif"))) {
-        return Kind::Image;
+    static const char *const imageExts[] = {
+        ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".avif", ".svg"
+    };
+    static const char *const videoExts[] = {
+        ".mp4", ".mkv", ".webm", ".mov", ".avi", ".m4v", ".mpeg", ".mpg", ".ogv",
+        ".m3u8", ".ts"
+    };
+    for (const char *ext : imageExts) {
+        if (path.endsWith(QLatin1String(ext)))
+            return Kind::Image;
     }
-
-    if (path.endsWith(QLatin1String(".mp4"))
-        || path.endsWith(QLatin1String(".mkv"))
-        || path.endsWith(QLatin1String(".webm"))
-        || path.endsWith(QLatin1String(".mov"))
-        || path.endsWith(QLatin1String(".avi"))
-        || path.endsWith(QLatin1String(".m4v"))
-        || path.endsWith(QLatin1String(".mpeg"))
-        || path.endsWith(QLatin1String(".mpg"))
-        || path.endsWith(QLatin1String(".ogv"))) {
-        return Kind::Video;
+    for (const char *ext : videoExts) {
+        if (path.endsWith(QLatin1String(ext)))
+            return Kind::Video;
     }
+    return Kind::Unknown;
+}
 
-    // Uzantısız http(s): oynatıcıya bırak (DRM vb. başarısız olabilir)
+inline Kind classify(const QUrl &url)
+{
+    const Kind byExt = classifyByExtension(url);
+    if (byExt != Kind::Unknown)
+        return byExt;
+    if (!url.isValid() || url.isEmpty() || !isAllowedScheme(url))
+        return Kind::Unknown;
+
+    // Uzantısız http(s): sayfa veya akış olabilir (yt-dlp ile çözülür)
     const QString scheme = url.scheme().toLower();
     if (scheme == QStringLiteral("http") || scheme == QStringLiteral("https"))
         return Kind::Video;

@@ -26,8 +26,8 @@ Window {
               | Qt.WindowStaysOnTopHint
         root.requestActivate()
 
-        if (typeof AppBridge !== "undefined" && AppBridge.initialUrl.toString() !== "")
-            root.openMedia(AppBridge.initialUrl)
+        if (typeof AppBridge !== "undefined")
+            AppBridge.openInitial()
     }
 
     property url mediaSource: ""
@@ -38,6 +38,7 @@ Window {
     property bool hasMedia: mediaSource.toString() !== ""
     property string statusMessage: ""
     property real volumeValue: 1.0
+    readonly property bool resolving: typeof AppBridge !== "undefined" && AppBridge.resolving
 
     readonly property int headerHeight: 42
     readonly property int controlsHeight: 78
@@ -54,8 +55,9 @@ Window {
         return "unknown"
     }
 
-    function openMedia(fileUrl) {
-        const kind = classifyMedia(fileUrl)
+    function openMedia(fileUrl, kindHint) {
+        const kind = (kindHint === "image" || kindHint === "video")
+                     ? kindHint : classifyMedia(fileUrl)
         if (kind === "unknown") {
             statusMessage = "Desteklenmeyen medya türü veya adres."
             return
@@ -132,14 +134,24 @@ Window {
 
     Connections {
         target: (typeof AppBridge !== "undefined") ? AppBridge : null
-        function onOpenRequested(url) {
-            root.openMedia(url)
+        function onOpenRequested(url, kind) {
+            root.openMedia(url, kind)
             root.requestActivate()
             root.raise()
         }
         function onLastErrorChanged() {
             if (AppBridge.lastError && AppBridge.lastError.length > 0)
                 root.statusMessage = AppBridge.lastError
+        }
+        function onResolvingChanged() {
+            if (AppBridge.resolving) {
+                // Yeni sayfa videosu hazırlanıyor: eskisini kapat
+                player.stop()
+                root.mediaSource = ""
+                root.statusMessage = ""
+                root.requestActivate()
+                root.raise()
+            }
         }
     }
 
@@ -179,10 +191,15 @@ Window {
         videoOutput: videoOutputItem
 
         onErrorOccurred: function(error, errorString) {
-            if (error !== MediaPlayer.NoError)
-                root.statusMessage = errorString && errorString.length > 0
-                    ? ("Video açılamadı: " + errorString)
-                    : "Video açılamadı veya desteklenmiyor."
+            if (error === MediaPlayer.NoError)
+                return
+            let msg = errorString && errorString.length > 0
+                ? ("Video açılamadı: " + errorString)
+                : "Video açılamadı veya desteklenmiyor."
+            if (/^https?:/.test(root.mediaSource.toString())
+                    && typeof AppBridge !== "undefined" && !AppBridge.ytDlpAvailable)
+                msg += "\n\nWeb sayfalarındaki videolar için yt-dlp gerekir:\nsudo pacman -S yt-dlp"
+            root.statusMessage = msg
         }
     }
 
@@ -205,8 +222,14 @@ Window {
         anchors.fill: parent
         keys: ["text/uri-list"]
         onDropped: (drop) => {
-            if (drop.hasUrls && drop.urls.length > 0)
-                root.openMedia(drop.urls[0])
+            if (!drop.hasUrls || drop.urls.length === 0)
+                return
+            const u = drop.urls[0]
+            // Tarayıcıdan sürüklenen bağlantılar yt-dlp çözümünden geçsin
+            if (/^https?:/.test(u.toString()) && typeof AppBridge !== "undefined")
+                AppBridge.requestOpen(u.toString(), "")
+            else
+                root.openMedia(u)
         }
     }
 
@@ -352,7 +375,7 @@ Window {
             Column {
                 anchors.centerIn: parent
                 spacing: 8
-                visible: !root.hasMedia && root.statusMessage === ""
+                visible: !root.hasMedia && root.statusMessage === "" && !root.resolving
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -376,6 +399,23 @@ Window {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: "Dosya aç"
                     onClicked: fileDialog.open()
+                }
+            }
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 10
+                visible: root.resolving
+
+                BusyIndicator {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    running: root.resolving
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "Video hazırlanıyor…"
+                    color: "#d8dbe3"
+                    font.pixelSize: 13
                 }
             }
 

@@ -1,4 +1,5 @@
 #include "NativeMessagingHost.h"
+#include "AppBridge.h"
 #include "MediaUrl.h"
 
 #include <QCoreApplication>
@@ -38,13 +39,12 @@ bool writeMessage(FILE *out, const QJsonObject &obj)
     return true;
 }
 
-bool forwardOrLaunch(const QUrl &url)
+bool forwardOrLaunch(const QUrl &url, const QString &kind)
 {
     QLocalSocket socket;
     socket.connectToServer(QStringLiteral("floatingmedia-ipc"));
     if (socket.waitForConnected(400)) {
-        socket.write(url.toString(QUrl::FullyEncoded).toUtf8());
-        socket.write("\n");
+        socket.write(AppBridge::encodeIpc(url, kind));
         socket.flush();
         socket.waitForBytesWritten(400);
         socket.disconnectFromServer();
@@ -52,7 +52,11 @@ bool forwardOrLaunch(const QUrl &url)
     }
 
     const QString app = QCoreApplication::applicationFilePath();
-    return QProcess::startDetached(app, {url.toString(QUrl::FullyEncoded)});
+    QStringList args;
+    if (!kind.isEmpty())
+        args << QStringLiteral("--kind=") + kind;
+    args << url.toString(QUrl::FullyEncoded);
+    return QProcess::startDetached(app, args);
 }
 
 } // namespace
@@ -120,7 +124,11 @@ int runNativeMessagingHost(QCoreApplication &app)
             continue;
         }
 
-        if (!forwardOrLaunch(url)) {
+        QString kind = msg.value(QStringLiteral("kind")).toString();
+        if (!AppBridge::isValidKind(kind))
+            kind.clear();
+
+        if (!forwardOrLaunch(url, kind)) {
             writeMessage(out, QJsonObject{
                 {QStringLiteral("ok"), false},
                 {QStringLiteral("error"), QStringLiteral("FloatingMedia başlatılamadı.")}
