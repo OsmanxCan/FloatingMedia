@@ -12,7 +12,7 @@
 
 pkgbase=floatingmedia
 pkgname=(floatingmedia floatingmedia-kwin)
-pkgver=0.1.0
+pkgver=0.1.1
 pkgrel=1
 pkgdesc='Floating picture-in-picture media viewer for Linux desktops'
 arch=(x86_64)
@@ -26,12 +26,17 @@ build() {
   cmake -S "${pkgbase}-${pkgver}" -B build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr \
-    -DFLOATINGMEDIA_INSTALL_KWIN_SCRIPT=ON
+    -DFLOATINGMEDIA_INSTALL_KWIN_SCRIPT=ON \
+    -DFLOATINGMEDIA_INSTALL_BROWSER_HOSTS=ON \
+    -DFLOATINGMEDIA_BUILD_TESTS=OFF
   cmake --build build
 }
 
 package_floatingmedia() {
-  depends=(qt6-base qt6-declarative qt6-multimedia)
+  # Derlendiği Qt sürümünden eskisiyle çalışmaz (Qt_6.X sembolleri) — sürümü sabitle
+  local _qtver
+  _qtver="$(pacman -Q qt6-base | awk '{print $2}' | cut -d- -f1 | cut -d. -f1,2)"
+  depends=("qt6-base>=${_qtver}" "qt6-declarative>=${_qtver}" "qt6-multimedia>=${_qtver}" qt6-multimedia-ffmpeg)
   optdepends=(
     'floatingmedia-kwin: KWin script to keep the window above others on Plasma Wayland'
     'qt6-wayland: Wayland platform plugin'

@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
   "name": "FloatingMedia",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Seçilen medya adresini FloatingMedia kayan penceresinde açar.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA5PF51xVmp03G0oA5tTOpgS8enwgVXg8oBgRFY8iK0SNYA8E75o70bhz+h4I7vujA0QCCc5obNvyiSamMyBJVdlf/ZhRdx079zVtk96OHRWuYKECAmsIID2Zrjlz1ImShH9rtk5MQxtdjonD6K0VRyDTBPUfIBECDOcrH1GXt3CmXzTyEZPf+gSQw4Ws9h+fLaD2VIitmOci+SpwS0u5exSzw40c0gCghr7IiW5skKkAsvpZ1PVbNSOS3tTokQAhJKXy4tTRiQx1HK/okingPcB03Wf67Jw1RPC+3ds4/9lWlnFn5ex+YOB57QCB+8iNZUICKktlaD7U6PiBkG4c3NQIDAQAB",
   "permissions": [
     "contextMenus",
     "nativeMessaging",
@@ -12,7 +13,10 @@
     "<all_urls>"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": [
+      "background.js"
+    ]
   },
   "action": {
     "default_title": "FloatingMedia'ya gönder",

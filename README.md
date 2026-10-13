@@ -23,6 +23,13 @@ sudo pacman -U floatingmedia-*.pkg.tar.zst
 
 KDE Plasma'da pencere otomatik olarak her zaman üstte tutulur; ek bir kurulum gerekmez.
 
+**Tarayıcı eklentisi (isteğe bağlı):** Arch paketi tarayıcı bağlantısını (Native Messaging) otomatik kurar; eklentinin kendisini tarayıcıya bir kez elle yüklemeniz gerekir (tarayıcılar, mağaza dışındaki eklentilerin paketle kurulmasına izin vermez). Eklenti dosyaları: `/usr/share/floatingmedia/browser-extension` (veya Releases'taki `floatingmedia-browser-extension-*.zip`).
+
+- Chromium / Chrome: `chrome://extensions` → Geliştirici modu → **Paketlenmemiş öğe yükle** → `/usr/share/floatingmedia/browser-extension`
+- Firefox: `about:debugging#/runtime/this-firefox` → **Geçici eklenti yükle** → `/usr/share/floatingmedia/browser-extension/manifest.json` (Firefox yeniden başlayınca kaldırılır)
+
+Sonra bir videoya / görsele / bağlantıya sağ tıklayıp **FloatingMedia'da aç** deyin.
+
 ## Yeni sürüm yayınlama (geliştirici)
 
 1. `CMakeLists.txt` içindeki `project(... VERSION x.y.z)` ve `packaging/arch/PKGBUILD` içindeki `pkgver` değerini güncelleyin.

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Tarayıcı Native Messaging host sarmalayıcısı (tarayıcı bu dosyayı çalıştırır)
+exec "@FM_APP_PATH@" --native-messaging-host "$@"

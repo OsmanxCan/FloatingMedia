@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(FloatingMedia VERSION 0.1.0 LANGUAGES CXX)
+project(FloatingMedia VERSION 0.1.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,6 +10,12 @@ option(FLOATINGMEDIA_INSTALL_KWIN_SCRIPT
     ON
 )
 option(FLOATINGMEDIA_BUILD_TESTS "Build unit/smoke tests" ON)
+option(FLOATINGMEDIA_INSTALL_BROWSER_HOSTS
+    "Install system-wide browser Native Messaging host files (distro packages)"
+    OFF
+)
+# browser-extension/manifest.json içindeki "key" alanından türeyen sabit Chromium eklenti kimliği
+set(FLOATINGMEDIA_CHROME_EXTENSION_ID "jhjifomihdfomoemeaemfcmldcgfelib")
 
 find_package(Qt6 6.8 REQUIRED COMPONENTS
     Quick
@@ -71,10 +77,42 @@ install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/floatingmedia.svg
     COMPONENT Runtime
 )
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/browser-extension
-    DESTINATION ${CMAKE_INSTALL_DATADIR}/floatingmedia
-    COMPONENT Browser
-)
+if(FLOATINGMEDIA_INSTALL_BROWSER_HOSTS)
+    # Tarayıcı eklentisi dosyaları + Native Messaging host (sistem geneli)
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/browser-extension/
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/floatingmedia/browser-extension
+        COMPONENT Runtime
+        PATTERN "native-messaging" EXCLUDE
+    )
+
+    set(FM_APP_PATH "${CMAKE_INSTALL_FULL_BINDIR}/FloatingMediaApp")
+    set(HOST_PATH "${CMAKE_INSTALL_FULL_LIBEXECDIR}/floatingmedia-native-host")
+    set(CHROME_EXTENSION_ID "${FLOATINGMEDIA_CHROME_EXTENSION_ID}")
+
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources/floatingmedia-native-host.in
+        ${CMAKE_CURRENT_BINARY_DIR}/floatingmedia-native-host @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/browser-extension/native-messaging/com.floatingmedia.host-firefox.json.in
+        ${CMAKE_CURRENT_BINARY_DIR}/nm-firefox/com.floatingmedia.host.json @ONLY)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/browser-extension/native-messaging/com.floatingmedia.host-chrome.json.in
+        ${CMAKE_CURRENT_BINARY_DIR}/nm-chrome/com.floatingmedia.host.json @ONLY)
+
+    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/floatingmedia-native-host
+        DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}
+        COMPONENT Runtime
+    )
+    # Firefox (sistem geneli)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/nm-firefox/com.floatingmedia.host.json
+        DESTINATION lib/mozilla/native-messaging-hosts
+        COMPONENT Runtime
+    )
+    # Chromium / Google Chrome (sistem geneli)
+    foreach(dir /etc/chromium/native-messaging-hosts /etc/opt/chrome/native-messaging-hosts)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/nm-chrome/com.floatingmedia.host.json
+            DESTINATION ${dir}
+            COMPONENT Runtime
+        )
+    endforeach()
+endif()
 
 if(FLOATINGMEDIA_INSTALL_KWIN_SCRIPT)
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/kwin-script/

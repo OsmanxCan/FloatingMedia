@@ -22,7 +22,7 @@ SKIP_BUILD=0
 ASSUME_YES=0
 WITH_KDE=1
 WITH_BROWSER=0
-CHROME_EXTENSION_ID="REPLACE_WITH_UNPACKED_EXTENSION_ID"
+CHROME_EXTENSION_ID="jhjifomihdfomoemeaemfcmldcgfelib"  # manifest.json "key" alanından sabit
 AUTO_KDE=1
 
 usage() {
