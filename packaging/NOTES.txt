@@ -1,0 +1,41 @@
+FloatingMedia — dağıtım notları (Aşama 4)
+========================================
+
+Hedef ortam: Linux, birincil olarak CachyOS + KDE Plasma 6 (Wayland).
+Hyprland desteği yok. GNOME ileride ayrı değerlendirilecek.
+
+Paketleme yöntemi
+-----------------
+1) Kullanıcı dizini (geliştirme / hızlı deneme)
+   ./install.sh          # uygulama + KWin
+   ./install.sh --no-kde # yalnızca uygulama
+   ./uninstall.sh
+
+2) Arch / CachyOS paketi (önerilen dağıtım; sanal makinede test)
+   ./packaging/make-source-tarball.sh
+   cd packaging/arch && makepkg -s
+
+   Üretilen paketler:
+     floatingmedia       — ikili + .desktop
+     floatingmedia-kwin  — isteğe bağlı KWin betiği
+
+   KWin etkinleştirme kullanıcı başına yapılır; bakınız
+   packaging/arch/floatingmedia-kwin.install
+
+3) CMake önek kurulumu (paketleyici / DESTDIR)
+   cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr \
+         -DFLOATINGMEDIA_INSTALL_KWIN_SCRIPT=ON
+   cmake --build build
+   DESTDIR=/tmp/fm-root cmake --install build
+
+CMake bileşenleri
+-----------------
+  Runtime — FloatingMediaApp + floatingmedia.desktop
+  KDE     — share/kwin/scripts/floatingmedia-keep-above/
+
+  -DFLOATINGMEDIA_INSTALL_KWIN_SCRIPT=OFF ile KDE katmanı üretilmez.
+
+Güvenlik
+--------
+Ana geliştirme makinesine kalıcı kurulum yapmayın.
+install.sh / uninstall.sh / makepkg -i testlerini sanal makinede çalıştırın.

@@ -1,0 +1,9 @@
+{
+  "name": "com.floatingmedia.host",
+  "description": "FloatingMedia Native Messaging host",
+  "path": "@HOST_PATH@",
+  "type": "stdio",
+  "allowed_extensions": [
+    "floatingmedia@floatingmedia.local"
+  ]
+}

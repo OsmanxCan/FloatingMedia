@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=FloatingMedia
+Comment=Fotoğraf ve videoları diğer pencerelerin üzerinde görüntüle
+Exec=FloatingMediaApp
+Icon=video-x-generic
+Terminal=false
+Categories=AudioVideo;Video;
+StartupWMClass=FloatingMediaApp

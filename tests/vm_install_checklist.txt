@@ -1,0 +1,31 @@
+FloatingMedia — Sanal makine kurulum kontrol listesi
+=====================================================
+Ana geliştirme bilgisayarında install.sh / uninstall.sh ÇALIŞTIRMAYIN.
+
+1. Kaynakları VM'ye kopyalayın.
+2. Bağımlılıklar: qt6-base qt6-declarative qt6-multimedia cmake ninja
+   (Plasma için ayrıca kwin / kpackagetool6)
+3. Derleme:
+     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+     cmake --build build --parallel
+     ctest --test-dir build --output-on-failure
+4. Kullanıcı kurulumu:
+     ./install.sh -y
+     ./install.sh --dry-run -y   # ikinci kez güvenli olmalı
+5. Doğrula:
+     - Uygulama menüsünde FloatingMedia
+     - ~/.local/bin/FloatingMediaApp çalışıyor
+     - KWin betiği listede ve keepAbove çalışıyor (Plasma)
+6. Tarayıcı (isteğe bağlı):
+     ./install.sh -y --with-browser --chrome-extension-id=<ID>
+     Firefox: about:debugging → geçici eklenti yükle (browser-extension/)
+     Chromium: chrome://extensions → paketlenmemiş yükle
+     Native host JSON yolunun FloatingMediaApp --native-messaging-host
+     ile aynı ikiliyi işaretlediğini kontrol et
+7. Kaldırma:
+     ./uninstall.sh -y
+     (isteğe bağlı) ./uninstall.sh -y --purge-qt-config --purge-browser
+8. Paket yolu:
+     ./packaging/make-source-tarball.sh
+     cd packaging/arch && makepkg -s
+     makepkg -i   # yalnızca VM'de

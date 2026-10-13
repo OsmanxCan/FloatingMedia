@@ -1,0 +1,30 @@
+# Kullanıcı başına kwinrc yazılmaz (root post_install güvenli değil).
+# Betik /usr/share/kwin/scripts altına kurulur; etkinleştirme kullanıcıya bırakılır.
+
+_SCRIPT_ID=floatingmedia-keep-above
+
+post_install() {
+  cat <<EOF
+floatingmedia-kwin kuruldu.
+
+KWin betiğini mevcut kullanıcı için etkinleştirmek (Plasma oturumunda):
+
+  kwriteconfig6 --file kwinrc --group Plugins --key ${_SCRIPT_ID}Enabled true
+  qdbus6 org.kde.KWin /KWin reconfigure
+
+Sistem Ayarları > Pencere Yönetimi > KWin Betikleri yolunu da kullanabilirsiniz.
+EOF
+}
+
+post_upgrade() {
+  post_install
+}
+
+pre_remove() {
+  cat <<EOF
+Kaldırmadan önce isteğe bağlı olarak kullanıcı ayarını temizleyin:
+
+  kwriteconfig6 --file kwinrc --group Plugins --key ${_SCRIPT_ID}Enabled --delete
+  qdbus6 org.kde.KWin /KWin reconfigure
+EOF
+}

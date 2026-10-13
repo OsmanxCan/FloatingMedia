@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>FloatingMedia</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 12px;
+      min-width: 240px;
+      color: #1a1a1a;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 8px 0;
+      padding: 6px;
+    }
+    button {
+      width: 100%;
+      padding: 8px;
+      cursor: pointer;
+    }
+    #status {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #444;
+    }
+    .err { color: #b00020; }
+    .ok { color: #0a7a32; }
+  </style>
+</head>
+<body>
+  <strong>FloatingMedia</strong>
+  <p style="font-size:12px;margin:6px 0;">Medya URL'sini gönder:</p>
+  <input id="url" type="url" placeholder="https://... veya dosya yolu" />
+  <button id="send">Gönder</button>
+  <button id="page" style="margin-top:6px;">Aktif sekme adresini gönder</button>
+  <div id="status"></div>
+  <script src="popup.js"></script>
+</body>
+</html>

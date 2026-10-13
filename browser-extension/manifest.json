@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "FloatingMedia",
+  "version": "0.1.0",
+  "description": "Seçilen medya adresini FloatingMedia kayan penceresinde açar.",
+  "permissions": [
+    "contextMenus",
+    "nativeMessaging",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "FloatingMedia'ya gönder",
+    "default_popup": "popup.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "floatingmedia@floatingmedia.local",
+      "strict_min_version": "109.0"
+    }
+  }
+}

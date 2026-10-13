@@ -1,0 +1,62 @@
+# Maintainer: FloatingMedia Contributors
+# CachyOS / Arch Linux — sanal makinede test edin; geliştirme host'una kurmayın.
+#
+# Yerel kaynak tarball'ı oluşturmak (proje kökünden):
+#   ./packaging/make-source-tarball.sh
+# Ardından:
+#   cd packaging/arch && makepkg -s
+#
+# Üretilen paketler:
+#   floatingmedia       — uygulama + .desktop (Runtime)
+#   floatingmedia-kwin  — KWin keep-above betiği (isteğe bağlı KDE katmanı)
+
+pkgbase=floatingmedia
+pkgname=(floatingmedia floatingmedia-kwin)
+pkgver=0.1.0
+pkgrel=1
+pkgdesc='Floating picture-in-picture media viewer for Linux desktops'
+arch=(x86_64)
+url='https://github.com/floatingmedia/floatingmedia'
+license=(GPL-3.0-or-later)
+makedepends=(cmake ninja qt6-base qt6-declarative qt6-multimedia qt6-tools)
+source=("${pkgbase}-${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cmake -S "${pkgbase}-${pkgver}" -B build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr \
+    -DFLOATINGMEDIA_INSTALL_KWIN_SCRIPT=ON
+  cmake --build build
+}
+
+package_floatingmedia() {
+  depends=(qt6-base qt6-declarative qt6-multimedia)
+  optdepends=(
+    'floatingmedia-kwin: KWin script to keep the window above others on Plasma Wayland'
+    'qt6-wayland: Wayland platform plugin'
+  )
+
+  DESTDIR="${pkgdir}" cmake --install build --component Runtime
+
+  # Bazı CMake sürümlerinde --component tek başına bağımlı dosyaları atlayabilir;
+  # ikili ve desktop dosyasının geldiğini doğrula.
+  if [[ ! -x "${pkgdir}/usr/bin/FloatingMediaApp" ]]; then
+    DESTDIR="${pkgdir}" cmake --install build
+    rm -rf "${pkgdir}/usr/share/kwin"
+  fi
+}
+
+package_floatingmedia-kwin() {
+  pkgdesc='KWin script to keep FloatingMedia above other windows (Plasma)'
+  depends=(floatingmedia kwin)
+  install=floatingmedia-kwin.install
+
+  DESTDIR="${pkgdir}" cmake --install build --component KDE
+
+  if [[ ! -f "${pkgdir}/usr/share/kwin/scripts/floatingmedia-keep-above/metadata.json" ]]; then
+    mkdir -p "${pkgdir}/usr/share/kwin/scripts/floatingmedia-keep-above"
+    cp -a "${srcdir}/${pkgbase}-${pkgver}/kwin-script/." \
+      "${pkgdir}/usr/share/kwin/scripts/floatingmedia-keep-above/"
+  fi
+}
