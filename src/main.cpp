@@ -1,4 +1,5 @@
 #include "AppBridge.h"
+#include "KWinKeepAbove.h"
 #include "MediaUrl.h"
 #include "NativeMessagingHost.h"
 
@@ -82,6 +83,11 @@ int main(int argc, char *argv[])
 
     if (engine.rootObjects().isEmpty())
         return -1;
+
+    // KDE Plasma (Wayland) için "her zaman üstte": KWin'e çalışma anında betik yükle
+    KWinKeepAbove keepAbove;
+    keepAbove.apply();
+    QObject::connect(&app, &QCoreApplication::aboutToQuit, &keepAbove, &KWinKeepAbove::release);
 
     return app.exec();
 }

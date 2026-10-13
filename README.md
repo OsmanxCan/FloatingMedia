@@ -75,7 +75,9 @@ Ayrıntılı VM kontrol listesi: [`tests/vm_install_checklist.txt`](tests/vm_ins
 
 ## KDE Plasma entegrasyonu
 
-Wayland’da Qt `WindowStaysOnTopHint` tek başına yeterli olmayabilir. KWin betiği `floatingmedia-keep-above`, `FloatingMediaApp` pencerelerine `keepAbove` uygular.
+Wayland’da Qt `WindowStaysOnTopHint` tek başına yeterli değildir. Bu yüzden uygulama, KWin çalışıyorsa her açılışta D-Bus üzerinden geçici bir betik yükleyip kendi pencerelerine `keepAbove` uygular ve kapanırken betiği kaldırır (kurulum gerektirmez; kapatmak için `FLOATINGMEDIA_NO_KWIN=1`).
+
+Ayrıca kalıcı olarak kurulabilen KWin betiği `floatingmedia-keep-above`, `FloatingMediaApp` pencerelerine `keepAbove` uygular.
 
 Kurulum betiği betiği yükler ve `kwinrc` içinde yalnızca `Plugins/floatingmedia-keep-aboveEnabled=true` yazar. Diğer KWin ayarlarına dokunmaz.
 
@@ -115,7 +117,7 @@ Uygulama host modu: `FloatingMediaApp --native-messaging-host` (kurulumda sarmal
 - DRM / geçici imzalı veya çerez gerektiren akışlar açılamayabilir.
 - Uzantısız HTTP(S) adresler video olarak denenir; başarısız olursa hata gösterilir.
 - Hyprland / GNOME keep-above entegrasyonu yok.
-- VDPAU NVIDIA uyarısı bazı sistemlerde görülebilir; temel oynatmayı engellemez.
+- `Failed to open VDPAU backend libvdpau_nvidia.so` yalnızca uyarıdır (NVIDIA donanım çözücüsü yok); yazılımsal çözmeye geçilir, oynatmayı engellemez.
 
 ## Lisans
 

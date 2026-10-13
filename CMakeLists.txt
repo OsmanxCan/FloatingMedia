@@ -16,6 +16,7 @@ find_package(Qt6 6.8 REQUIRED COMPONENTS
     QuickControls2
     Multimedia
     Network
+    DBus
 )
 
 qt_standard_project_setup(REQUIRES 6.8)
@@ -27,6 +28,8 @@ qt_add_executable(FloatingMediaApp
     src/NativeMessagingHost.cpp
     src/NativeMessagingHost.h
     src/MediaUrl.h
+    src/KWinKeepAbove.cpp
+    src/KWinKeepAbove.h
 )
 
 qt_add_qml_module(FloatingMediaApp
@@ -42,6 +45,7 @@ target_link_libraries(FloatingMediaApp
         Qt6::QuickControls2
         Qt6::Multimedia
         Qt6::Network
+        Qt6::DBus
 )
 
 include(GNUInstallDirs)
