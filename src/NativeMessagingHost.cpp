@@ -1,5 +1,6 @@
 #include "NativeMessagingHost.h"
 #include "AppBridge.h"
+#include "KWinKeepAbove.h"
 #include "MediaUrl.h"
 
 #include <QCoreApplication>
@@ -97,10 +98,21 @@ int runNativeMessagingHost(QCoreApplication &app)
 
         const QJsonObject msg = doc.object();
         const QString action = msg.value(QStringLiteral("action")).toString(QStringLiteral("open"));
-        if (action != QStringLiteral("open") && action != QStringLiteral("ping")) {
+        if (action != QStringLiteral("open") && action != QStringLiteral("ping")
+            && action != QStringLiteral("pip")) {
             writeMessage(out, QJsonObject{
                 {QStringLiteral("ok"), false},
                 {QStringLiteral("error"), QStringLiteral("Bilinmeyen action.")}
+            });
+            continue;
+        }
+
+        if (action == QStringLiteral("pip")) {
+            // Tarayıcının PiP penceresini KWin ile her zaman üstte tut
+            const bool above = KWinKeepAbove::ensureBrowserPipKeepAbove();
+            writeMessage(out, QJsonObject{
+                {QStringLiteral("ok"), true},
+                {QStringLiteral("keepAbove"), above}
             });
             continue;
         }

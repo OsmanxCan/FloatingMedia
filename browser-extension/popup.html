@@ -132,13 +132,21 @@
       border: 1px solid var(--line);
     }
     #status { margin-top: 8px; font-size: 12px; min-height: 16px; }
+    .pipbox { padding: 12px 12px 10px; border-bottom: 1px solid var(--line); }
+    .btn.pip { width: 100%; padding: 9px 10px; font-weight: 600; font-size: 13px; }
+    .hint { margin-top: 6px; color: var(--muted); font-size: 11px; text-align: center; }
     .err { color: var(--err); }
     .ok { color: var(--ok); }
   </style>
 </head>
 <body>
+  <div class="pipbox">
+    <button id="pip" class="btn pip">⧉ Videoyu yüzen pencereye al</button>
+    <div class="hint">Her sitede çalışır · Kısayol: Alt+P · Pencere her zaman üstte kalır</div>
+  </div>
+
   <header>
-    <strong>Bu sayfadaki medya</strong>
+    <strong>Uygulamada aç</strong>
     <div class="tabs">
       <button data-filter="all" class="active">Tümü</button>
       <button data-filter="video">Video</button>

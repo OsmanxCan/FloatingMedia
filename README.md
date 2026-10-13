@@ -30,6 +30,7 @@ KDE Plasma'da pencere otomatik olarak her zaman üstte tutulur; ek bir kurulum g
 
 Kullanım:
 
+- **Her sitede (önerilen):** Eklentide **"⧉ Videoyu yüzen pencereye al"** düğmesi veya **Alt+P** kısayolu. Tarayıcının kendi "pencere içinde pencere" penceresi açılır; FloatingMedia bu pencereyi KDE Plasma'da her zaman üstte tutar. DRM'li siteler (Netflix vb.) dahil çalışır. Firefox bu özelliği eklentilere açmadığı için orada videonun üzerindeki PiP düğmesini kullanın (eklenti penceresi bir kez açıldıktan ya da FloatingMedia bir kez başlatıldıktan sonra o oturumda PiP pencereleri üstte tutulur).
 - Eklenti simgesine tıklayın: açık sayfadaki **videolar ve fotoğraflar** küçük resimleriyle listelenir; birine tıklayınca FloatingMedia'da açılır.
 - Video / görsel / bağlantıya sağ tıklayıp **FloatingMedia'da aç** deyin.
 - YouTube gibi sayfalardaki videolar (`blob:` akışları) **yt-dlp** ile çözülür (Arch paketi bağımlılık olarak kurar; diğer sistemlerde `yt-dlp` kurun). Qt tek akış oynatabildiği için bazı sitelerde en yüksek kalite yerine ses+görüntü içeren en iyi tek akış seçilir.

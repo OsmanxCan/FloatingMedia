@@ -7,6 +7,7 @@
 #include <QStandardPaths>
 #include <QStringList>
 #include <QTimer>
+#include <QVariant>
 
 namespace {
 
@@ -197,6 +198,14 @@ void AppBridge::dispatch(const QUrl &url, const QString &kindHint)
     resolveWithYtDlp(url);
 }
 
+void AppBridge::setResolveStatus(const QString &status)
+{
+    if (m_resolveStatus == status)
+        return;
+    m_resolveStatus = status;
+    emit resolveStatusChanged();
+}
+
 void AppBridge::resolveWithYtDlp(const QUrl &pageUrl)
 {
     const QString exe = ytDlpPath();
@@ -207,19 +216,43 @@ void AppBridge::resolveWithYtDlp(const QUrl &pageUrl)
     }
 
     auto *proc = new QProcess(this);
+    proc->setProcessChannelMode(QProcess::MergedChannels);
+    // Bazı ortamlarda yt-dlp girdi bekleyebilir; kapat
+    proc->setStandardInputFile(QProcess::nullDevice());
+    proc->setProperty("fmOutput", QString());
     m_resolver = proc;
+    setResolveStatus(QStringLiteral("yt-dlp başlatılıyor…"));
     emit resolvingChanged();
+
+    // Canlı durum: yt-dlp'nin "[site] ...: Downloading ..." satırlarını göster
+    connect(proc, &QProcess::readyReadStandardOutput, this, [this, proc]() {
+        const QString chunk = QString::fromUtf8(proc->readAllStandardOutput());
+        proc->setProperty("fmOutput", proc->property("fmOutput").toString() + chunk);
+        if (proc != m_resolver)
+            return;
+        const QStringList lines = chunk.split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+        for (auto it = lines.crbegin(); it != lines.crend(); ++it) {
+            const QString t = it->trimmed();
+            if (t.startsWith(QLatin1Char('['))) {
+                setResolveStatus(t.left(90));
+                break;
+            }
+        }
+    });
 
     connect(proc, &QProcess::finished, this,
             [this, proc, pageUrl](int exitCode, QProcess::ExitStatus status) {
         const bool current = (proc == m_resolver);
-        const QString out = QString::fromUtf8(proc->readAllStandardOutput());
-        const QString err = QString::fromUtf8(proc->readAllStandardError());
+        const QString out = proc->property("fmOutput").toString()
+            + QString::fromUtf8(proc->readAllStandardOutput());
+        const bool timedOut = proc->property("fmTimedOut").toBool();
         proc->deleteLater();
         if (!current)
             return; // iptal edildi / yerine yenisi geldi
 
+        const QString lastStep = m_resolveStatus;
         m_resolver = nullptr;
+        setResolveStatus({});
         emit resolvingChanged();
 
         QUrl direct;
@@ -236,40 +269,51 @@ void AppBridge::resolveWithYtDlp(const QUrl &pageUrl)
             emit openRequested(direct, kVideo);
             return;
         }
-        if (status != QProcess::NormalExit) {
-            setError(QStringLiteral("Video adresi çözülemedi (zaman aşımı)."));
+        if (timedOut || status != QProcess::NormalExit) {
+            QString msg = QStringLiteral("Video adresi çözülemedi (zaman aşımı).");
+            if (!lastStep.isEmpty())
+                msg += QStringLiteral("\nSon adım: ") + lastStep;
+            msg += QStringLiteral("\n\nBu site için eklentideki \"Yüzen pencereye al\" seçeneğini kullanın.");
+            setError(msg);
             return;
         }
-        if (err.contains(QLatin1String("Unsupported URL"))) {
+        if (out.contains(QLatin1String("Unsupported URL"))) {
             // yt-dlp tanımıyor: belki uzantısız doğrudan bir akıştır
             emit openRequested(pageUrl, kVideo);
             return;
         }
-        const QString reason = lastErrorLine(err);
-        setError(reason.isEmpty()
+        const QString reason = lastErrorLine(out);
+        setError((reason.isEmpty()
                      ? QStringLiteral("Bu sayfadaki video alınamadı.")
-                     : QStringLiteral("Bu sayfadaki video alınamadı: ") + reason);
+                     : QStringLiteral("Bu sayfadaki video alınamadı: ") + reason)
+                 + QStringLiteral("\n\nBu site için eklentideki \"Yüzen pencereye al\" seçeneğini kullanın."));
     });
 
     connect(proc, &QProcess::errorOccurred, this, [this, proc, pageUrl](QProcess::ProcessError e) {
         if (e != QProcess::FailedToStart || proc != m_resolver)
             return;
         m_resolver = nullptr;
+        setResolveStatus({});
         emit resolvingChanged();
         proc->deleteLater();
         emit openRequested(pageUrl, kVideo);
     });
 
     // Çok uzun sürerse durdur
-    QTimer::singleShot(45000, proc, [proc]() {
-        if (proc->state() != QProcess::NotRunning)
+    QTimer::singleShot(90000, proc, [proc]() {
+        if (proc->state() != QProcess::NotRunning) {
+            proc->setProperty("fmTimedOut", true);
             proc->kill();
+        }
     });
 
     // "b": hem görüntü hem ses içeren en iyi tek akış (Qt ayrı akışları birleştiremez)
+    // --force-ipv4: sanal makinelerde/bazı ağlarda bozuk IPv6 yüzünden takılmayı önler
     proc->start(exe, {
         QStringLiteral("--no-playlist"),
-        QStringLiteral("--no-warnings"),
+        QStringLiteral("--no-quiet"),
+        QStringLiteral("--force-ipv4"),
+        QStringLiteral("--socket-timeout"), QStringLiteral("15"),
         QStringLiteral("-f"), QStringLiteral("b/best"),
         QStringLiteral("-g"),
         pageUrl.toString(QUrl::FullyEncoded)
@@ -286,5 +330,6 @@ void AppBridge::cancelResolve()
         proc->kill(); // finished geldiğinde kendini siler
     else
         proc->deleteLater();
+    setResolveStatus({});
     emit resolvingChanged();
 }

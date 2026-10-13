@@ -17,7 +17,6 @@ static void printUsage()
     std::fprintf(stderr,
         "FloatingMediaApp [seçenekler] [medya-yolu-veya-url]\n"
         "  --native-messaging-host   Tarayıcı Native Messaging host modu\n"
-        "  --kind=image|video|page   Medya türü ipucu (page: yt-dlp ile çözülür)\n"
         "  --help                    Bu yardımı göster\n");
 }
 
@@ -41,19 +40,12 @@ int main(int argc, char *argv[])
 
     AppBridge bridge;
     QUrl startupUrl;
-    QString startupKind;
     const QStringList args = QCoreApplication::arguments();
     for (int i = 1; i < args.size(); ++i) {
         const QString &a = args.at(i);
         if (a == QLatin1String("--help") || a == QLatin1String("-h")) {
             printUsage();
             return 0;
-        }
-        if (a.startsWith(QLatin1String("--kind="))) {
-            startupKind = a.mid(7);
-            if (!AppBridge::isValidKind(startupKind))
-                startupKind.clear();
-            continue;
         }
         if (a.startsWith(QLatin1Char('-')))
             continue;
@@ -72,7 +64,7 @@ int main(int argc, char *argv[])
     // İkincil örnek: birincile ilet ve çık
     if (!bridge.becomePrimaryInstance()) {
         if (!startupUrl.isEmpty()) {
-            if (!bridge.forwardToPrimary(startupUrl, startupKind)) {
+            if (!bridge.forwardToPrimary(startupUrl)) {
                 std::fprintf(stderr, "FloatingMedia: çalışan örneğe bağlanılamadı.\n");
                 return 1;
             }
@@ -83,7 +75,7 @@ int main(int argc, char *argv[])
     }
 
     if (!startupUrl.isEmpty())
-        bridge.setInitialUrl(startupUrl, startupKind);
+        bridge.setInitialUrl(startupUrl);
 
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty(QStringLiteral("AppBridge"), &bridge);
@@ -95,6 +87,8 @@ int main(int argc, char *argv[])
     // KDE Plasma (Wayland) için "her zaman üstte": KWin'e çalışma anında betik yükle
     KWinKeepAbove keepAbove;
     keepAbove.apply();
+    // Tarayıcıların "pencere içinde pencere" pencerelerini de üstte tut (oturum boyunca)
+    KWinKeepAbove::ensureBrowserPipKeepAbove();
     QObject::connect(&app, &QCoreApplication::aboutToQuit, &keepAbove, &KWinKeepAbove::release);
 
     return app.exec();

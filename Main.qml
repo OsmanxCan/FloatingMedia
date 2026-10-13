@@ -417,6 +417,21 @@ Window {
                     color: "#d8dbe3"
                     font.pixelSize: 13
                 }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: Math.min(mediaArea.width - 24, 420)
+                    horizontalAlignment: Text.AlignHCenter
+                    elide: Text.ElideRight
+                    visible: text !== ""
+                    text: typeof AppBridge !== "undefined" ? AppBridge.resolveStatus : ""
+                    color: "#8a90a0"
+                    font.pixelSize: 11
+                }
+                Button {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "İptal"
+                    onClicked: AppBridge.cancelResolve()
+                }
             }
 
             Text {

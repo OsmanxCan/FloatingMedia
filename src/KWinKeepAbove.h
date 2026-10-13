@@ -19,6 +19,11 @@ public:
     bool apply();
     void release();
 
+    // Tarayıcıların "pencere içinde pencere" (PiP) pencerelerini her zaman
+    // üstte tutan betiği oturum boyunca yükler (zaten yüklüyse dokunmaz).
+    // Native Messaging host'u tarafından çağrılır.
+    static bool ensureBrowserPipKeepAbove();
+
 private:
     QString m_pluginName;
     QString m_scriptPath;

@@ -240,4 +240,71 @@ document.getElementById("page").addEventListener("click", async () => {
   openUrl(tab.url, "page");
 });
 
+// Popup içinden doğrudan çalıştır (tıklama izni sayfaya geçsin diye)
+function pagePictureInPicture() {
+  if (!("pictureInPictureEnabled" in document) || !document.pictureInPictureEnabled)
+    return { ok: false, unsupported: true };
+  if (document.pictureInPictureElement) {
+    return document.exitPictureInPicture()
+      .then(() => ({ ok: true, closed: true }))
+      .catch((e) => ({ ok: false, error: String(e) }));
+  }
+  const videos = Array.from(document.querySelectorAll("video")).filter((v) => {
+    const r = v.getBoundingClientRect();
+    return v.readyState > 0 && r.width * r.height > 0;
+  });
+  if (videos.length === 0)
+    return { ok: false, none: true };
+  const score = (v) => {
+    const r = v.getBoundingClientRect();
+    return (v.paused ? 0 : 1e9) + r.width * r.height;
+  };
+  videos.sort((a, b) => score(b) - score(a));
+  const v = videos[0];
+  v.removeAttribute("disablepictureinpicture");
+  try { v.disablePictureInPicture = false; } catch (e) {}
+  return v.requestPictureInPicture()
+    .then(() => ({ ok: true }))
+    .catch((e) => ({ ok: false, error: String(e) }));
+}
+
+document.getElementById("pip").addEventListener("click", async () => {
+  setStatus("", true);
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tab || !tab.id) {
+    setStatus("Sekme bulunamadı.", false);
+    return;
+  }
+  let results;
+  try {
+    results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id, allFrames: true },
+      func: pagePictureInPicture
+    });
+  } catch (e) {
+    setStatus("Bu sayfada çalıştırılamıyor.", false);
+    return;
+  }
+  const rs = (results || []).map((r) => r && r.result).filter(Boolean);
+  const okResult = rs.find((r) => r.ok);
+  if (okResult) {
+    if (okResult.closed) {
+      setStatus("Yüzen pencere kapatıldı.", true);
+      return;
+    }
+    chrome.runtime.sendMessage({ type: "pipReady" }, () => void chrome.runtime.lastError);
+    setStatus("Video yüzen pencerede.", true);
+    setTimeout(() => window.close(), 600);
+    return;
+  }
+  if (rs.length > 0 && rs.every((r) => r.unsupported)) {
+    setStatus("Bu tarayıcıda desteklenmiyor. Firefox'ta videonun üzerindeki PiP düğmesini kullanın.", false);
+    return;
+  }
+  const withError = rs.find((r) => r.error);
+  setStatus(withError ? withError.error : "Sayfada oynatılabilir video bulunamadı. Videoyu başlatıp tekrar deneyin.", false);
+});
+
+// Tarayıcının kendi PiP düğmesiyle açılan pencereler de üstte kalsın
+chrome.runtime.sendMessage({ type: "pipReady" }, () => void chrome.runtime.lastError);
 scanActiveTab();

@@ -18,6 +18,7 @@ class AppBridge : public QObject
     Q_PROPERTY(QString lastError READ lastError NOTIFY lastErrorChanged)
     Q_PROPERTY(bool resolving READ resolving NOTIFY resolvingChanged)
     Q_PROPERTY(bool ytDlpAvailable READ ytDlpAvailable CONSTANT)
+    Q_PROPERTY(QString resolveStatus READ resolveStatus NOTIFY resolveStatusChanged)
 
 public:
     explicit AppBridge(QObject *parent = nullptr);
@@ -27,6 +28,7 @@ public:
     QString lastError() const { return m_lastError; }
     bool resolving() const { return m_resolver != nullptr; }
     bool ytDlpAvailable() const;
+    QString resolveStatus() const { return m_resolveStatus; }
 
     void setInitialUrl(const QUrl &url, const QString &kind = QString());
 
@@ -36,6 +38,8 @@ public:
 
     Q_INVOKABLE bool requestOpen(const QString &input, const QString &kindHint = QString());
     Q_INVOKABLE void openInitial();
+    // Kullanıcı "İptal" dediğinde de çağrılır
+    Q_INVOKABLE void cancelResolve();
 
     static bool isValidKind(const QString &kind);
     // IPC satırı: "<tür>\t<url>" (tür boş olabilir; eski biçim yalnızca "<url>")
@@ -46,18 +50,20 @@ signals:
     void openRequested(const QUrl &url, const QString &kind);
     void lastErrorChanged();
     void resolvingChanged();
+    void resolveStatusChanged();
 
 private:
     void setError(const QString &message);
     void handleIpcConnection();
     void dispatch(const QUrl &url, const QString &kindHint);
     void resolveWithYtDlp(const QUrl &pageUrl);
-    void cancelResolve();
+    void setResolveStatus(const QString &status);
 
     QUrl m_initialUrl;
     QString m_initialKind;
     QString m_lastError;
     QLocalServer *m_server = nullptr;
     QProcess *m_resolver = nullptr;
+    QString m_resolveStatus;
     static constexpr const char *kServerName = "floatingmedia-ipc";
 };
