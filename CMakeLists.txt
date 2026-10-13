@@ -66,6 +66,11 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/floatingmedia.desktop
     COMPONENT Runtime
 )
 
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/resources/floatingmedia.svg
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps
+    COMPONENT Runtime
+)
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/browser-extension
     DESTINATION ${CMAKE_INSTALL_DATADIR}/floatingmedia
     COMPONENT Browser

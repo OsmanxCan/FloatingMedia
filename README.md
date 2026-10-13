@@ -4,6 +4,35 @@ Linux için kayan (picture-in-picture tarzı) fotoğraf ve video görüntüleyic
 
 Diğer pencerelerin üzerinde tutulabilen, taşınabilir ve yeniden boyutlandırılabilir küçük bir pencerede medya açmanızı sağlar.
 
+## İndir ve kur
+
+Hazır sürümler: **[Releases](https://github.com/OsmanxCan/FloatingMedia/releases/latest)**
+
+**AppImage (tüm dağıtımlar):**
+
+```bash
+chmod +x FloatingMedia-*-x86_64.AppImage
+./FloatingMedia-*-x86_64.AppImage
+```
+
+**Arch / CachyOS:**
+
+```bash
+sudo pacman -U floatingmedia-*.pkg.tar.zst
+```
+
+KDE Plasma'da pencere otomatik olarak her zaman üstte tutulur; ek bir kurulum gerekmez.
+
+## Yeni sürüm yayınlama (geliştirici)
+
+1. `CMakeLists.txt` içindeki `project(... VERSION x.y.z)` ve `packaging/arch/PKGBUILD` içindeki `pkgver` değerini güncelleyin.
+2. Commit + etiket gönderin:
+   ```bash
+   git tag vX.Y.Z
+   git push origin main --tags
+   ```
+3. GitHub Actions (`.github/workflows/release.yml`) paketleri derleyip Release sayfasına yükler.
+
 ## Özellikler
 
 - Fotoğraf ve video açma (dosya seçici, sürükle-bırak, CLI, tarayıcı uzantısı)
